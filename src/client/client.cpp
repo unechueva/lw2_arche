@@ -1,79 +1,48 @@
 #include <iostream>
+#include <string>
+#include <cstring>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <cstring>
-#include <cstdlib>
 
+#define MAX_MSG_LEN 1024
+#define MSG_PING "PING"
+#define MSG_PONG "PONG"
 
-#include "../../include/protocol.h"
-
-#pragma comment(lib, "ws2_32.lib")
-
-
-void setup_console() {
-    system("chcp 65001"); 
-    setlocale(LC_ALL, "ru_RU.UTF-8");
-}
+// Предположим, parse_command и handle_command объявлены где-то еще
+// int parse_command(const std::string& input, std::string& command, std::string& args);
+// int handle_command(const std::string& command, const std::string& args, const std::string& name, SOCKET sock);
+// int reconnect(SOCKET& sock, addrinfo* result);
 
 int main(int argc, char* argv[]) {
-    setup_console();
-
-
-    if (argc < 3) {
-        std::cout << "Использование: " << argv[0] << " <хост> <порт> [-n <число>] [-v]\n";
-        return 1;
-    }
-
-    const char* host = argv[1];
-    const char* port_str = argv[2];
-
-    int count = 1;
-    bool verbose = false;
-
-    for (int i = 3; i < argc; ++i) {
-        if (strcmp(argv[i], "-n") == 0 && i + 1 < argc) {
-            count = atoi(argv[++i]);
-            if (count <= 0) {
-                std::cerr << "Ошибка: число должно быть положительным.\n";
-                return 1;
-            }
-        }
-        else if (strcmp(argv[i], "-v") == 0) {
-            verbose = true;
-        }
-        else {
-            std::cerr << "Неизвестный параметр: " << argv[i] << "\n";
-            return 1;
-        }
-    }
+    const char* host = "127.0.0.1";  // пример
+    const char* port_str = "12345";   // пример
+    const char* name = "user";        // пример
+    int count = 5;                     // количество PING
+    bool verbose = true;
 
     WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+    if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
         std::cerr << "Ошибка: WSAStartup не удался.\n";
         return 1;
     }
 
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET) {
-        std::cerr << "Ошибка: socket() не удался. Код ошибки: " << WSAGetLastError() << "\n";
-        WSACleanup();
-        return 1;
-    }
-
-
-    struct addrinfo hints, * result;
-    ZeroMemory(&hints, sizeof(hints));
+    addrinfo hints{}, *result = nullptr;
     hints.ai_family = AF_INET;
     hints.ai_socktype = SOCK_STREAM;
 
-    int status = getaddrinfo(host, port_str, &hints, &result);
-    if (status != 0) {
-        std::cerr << "Ошибка: getaddrinfo() не удался. Код ошибки: " << status << "\n";
-        closesocket(sock);
+    if (getaddrinfo(host, port_str, &hints, &result) != 0) {
+        std::cerr << "Ошибка: getaddrinfo не удался.\n";
         WSACleanup();
         return 1;
     }
 
+    SOCKET sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if (sock == INVALID_SOCKET) {
+        std::cerr << "Ошибка: socket() не удался.\n";
+        freeaddrinfo(result);
+        WSACleanup();
+        return 1;
+    }
 
     if (connect(sock, result->ai_addr, result->ai_addrlen) == SOCKET_ERROR) {
         std::cerr << "Ошибка: connect() не удался. Код ошибки: " << WSAGetLastError() << "\n";
@@ -83,9 +52,9 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    freeaddrinfo(result);
     std::cout << "Подключено к " << host << ":" << port_str << "\n";
 
+    // Базовый PING
     for (int i = 0; i < count; ++i) {
         if (send(sock, MSG_PING, strlen(MSG_PING), 0) == SOCKET_ERROR) {
             std::cerr << "Ошибка: send() не удался. Код ошибки: " << WSAGetLastError() << "\n";
@@ -94,7 +63,7 @@ int main(int argc, char* argv[]) {
             return 1;
         }
 
-        if (verbose) std::cout << "отправлено " << MSG_PING;
+        if (verbose) std::cout << "отправлено " << MSG_PING << "\n";
 
         char buffer[MAX_MSG_LEN];
         int received = recv(sock, buffer, MAX_MSG_LEN - 1, 0);
@@ -107,8 +76,7 @@ int main(int argc, char* argv[]) {
 
         buffer[received] = '\0';
 
-        if (verbose) std::cout << "получено " << buffer;
-
+        if (verbose) std::cout << "получено " << buffer << "\n";
 
         if (strncmp(buffer, MSG_PONG, strlen(MSG_PONG)) != 0) {
             std::cerr << "Ошибка: ожидался PONG, получен: " << buffer << "\n";
@@ -120,8 +88,32 @@ int main(int argc, char* argv[]) {
         std::cout << "Пинг #" << (i + 1) << " OK\n";
     }
 
+    // Интерактивный режим
+    std::string input;
+    while (true) {
+        std::cout << "> ";
+        std::getline(std::cin, input);
+        if (input.empty()) continue;
+
+        std::string command, args;
+        parse_command(input, command, args);
+
+        int res = handle_command(command, args, name, sock);
+        if (res == 1) break;
+        if (res == -1) {
+            std::cerr << "Соединение потеряно. Попытка переподключения...\n";
+            if (reconnect(sock, result) == 0) {
+                std::cout << "Переподключено.\n";
+            } else {
+                std::cerr << "Не удалось восстановить соединение. Выход.\n";
+                break;
+            }
+        }
+    }
+
     closesocket(sock);
+    freeaddrinfo(result);
     WSACleanup();
-    std::cout << "Все пинги отправлены. Выход.\n";
+    std::cout << "Выход.\n";
     return 0;
 }
