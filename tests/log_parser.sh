@@ -12,11 +12,9 @@ fi
 
 echo "Анализируем: $LOG_FILE"
 
-# Базовая статистика
 TOTAL_LINES=$(wc -l < "$LOG_FILE")
 echo "Всего строк в логе: $TOTAL_LINES"
 
-# Поиск ошибок
 echo ""
 echo "=== ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ ==="
 ERRORS=$(grep -i -E "ERROR|FAIL|WARN" "$LOG_FILE")
@@ -26,7 +24,6 @@ else
     echo "Ошибок не обнаружено"
 fi
 
-# Статистика по сообщениям
 echo ""
 echo "=== СТАТИСТИКА СООБЩЕНИЙ ==="
 echo "PING отправлено: $(grep -c "Отправляю PING" "$LOG_FILE")"
@@ -34,7 +31,6 @@ echo "PONG получено: $(grep -c "Получил PONG" "$LOG_FILE")"
 echo "Успешных циклов: $(grep -c "PASS:" "$LOG_FILE")"
 echo "Неудачных циклов: $(grep -c "FAIL:" "$LOG_FILE")"
 
-# Временной анализ
 echo ""
 echo "=== ВРЕМЕННОЙ АНАЛИЗ ==="
 START_TIME=$(grep "Тест начат:" "$LOG_FILE" | head -1)
@@ -42,7 +38,6 @@ END_TIME=$(grep "Тест завершен:" "$LOG_FILE" | tail -1)
 echo "Начало теста: $START_TIME"
 echo "Окончание теста: $END_TIME"
 
-# Проверка целостности
 echo ""
 echo "=== ПРОВЕРКА ЦЕЛОСТНОСТИ ==="
 if grep -q "ОБЩИЙ РЕЗУЛЬТАТ: PASSED" "$LOG_FILE"; then

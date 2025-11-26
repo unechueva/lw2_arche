@@ -5,7 +5,6 @@ echo "=== Тест переподключения ==="
 RECONNECT_LOG="tests/tmp/reconnect_test.log"
 echo "Тест переподключения начат: $(date)" > $RECONNECT_LOG
 
-# Имитируем сценарий переподключения
 scenarios=(
     "Нормальное подключение"
     "Разрыв соединения" 
@@ -16,12 +15,10 @@ scenarios=(
 for i in {1..3}; do
     echo "Сценарий $i: ${scenarios[$((i-1))]}" >> $RECONNECT_LOG
     
-    # Имитируем подключение
     echo "$(date) - Подключение к серверу..." >> $RECONNECT_LOG
     echo "CONNECT" > tests/tmp/reconnect_$i.txt
     
     if [ $i -eq 2 ]; then
-        # Имитируем разрыв соединения
         echo "$(date) - СОЕДИНЕНИЕ РАЗОРВАНО" >> $RECONNECT_LOG
         echo "DISCONNECT" > tests/tmp/disconnect_$i.txt
         sleep 1
@@ -29,7 +26,6 @@ for i in {1..3}; do
         echo "RECONNECT" > tests/tmp/reconnect_${i}_retry.txt
     fi
     
-    # Имитируем обмен сообщениями
     echo "PING reconnect_$i" > tests/tmp/ping_reconnect_$i.txt
     echo "PONG reconnect_$i" > tests/tmp/pong_reconnect_$i.txt
     echo "Сообщения отправлены и получены" >> $RECONNECT_LOG

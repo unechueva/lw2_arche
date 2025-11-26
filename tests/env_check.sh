@@ -4,7 +4,6 @@ echo "=== Проверка окружения ==="
 
 ALL_CHECKS_PASSED=true
 
-# Проверка компилятора g++
 echo -n "Проверка g++... "
 if command -v g++ >/dev/null 2>&1; then
     echo "OK"
@@ -13,7 +12,6 @@ else
     ALL_CHECKS_PASSED=false
 fi
 
-# Проверка cmake
 echo -n "Проверка cmake... "
 if command -v cmake >/dev/null 2>&1; then
     echo "OK"
@@ -22,7 +20,6 @@ else
     ALL_CHECKS_PASSED=false
 fi
 
-# Проверка netcat (nc)
 echo -n "Проверка netcat (nc)... "
 if command -v nc >/dev/null 2>&1; then
     echo "OK"
@@ -31,7 +28,6 @@ else
     ALL_CHECKS_PASSED=false
 fi
 
-# Проверка порта 5555 (пропускаем если netstat недоступен)
 echo -n "Проверка порта 5555... "
 if command -v netstat >/dev/null 2>&1; then
     if netstat -an 2>/dev/null | grep -E "(:5555|:5555 )" | grep -i listen >/dev/null 2>&1; then
@@ -44,7 +40,6 @@ else
     echo "SKIP (netstat не доступен)"
 fi
 
-# Проверка прав на запись в папку tests/tmp
 echo -n "Проверка прав на tests/tmp... "
 if mkdir -p tests/tmp && touch tests/tmp/test_write >/dev/null 2>&1; then
     rm tests/tmp/test_write
@@ -54,7 +49,6 @@ else
     exit 1
 fi
 
-# Проверка, что скрипты исполняемые
 chmod +x tests/*.sh
 
 if [ "$ALL_CHECKS_PASSED" = true ]; then

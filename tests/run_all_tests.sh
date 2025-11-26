@@ -4,11 +4,9 @@ echo "=== ЗАПУСК ВСЕХ ТЕСТОВ ==="
 echo "Время начала: $(date)"
 echo ""
 
-# Создаем каталог для результатов
 mkdir -p tests/tmp/results
 OVERALL_RESULT="PASSED"
 
-# Запускаем все тесты
 TESTS=(
     "env_check.sh"
     "create_example_data.sh"
@@ -31,17 +29,14 @@ for test in "${TESTS[@]}"; do
     echo ""
 done
 
-# Анализируем логи
 echo "--- Анализ логов ---"
 ./tests/log_parser.sh tests/tmp/auto_ping_test.log
 echo ""
 
-# Итоговый отчет
 echo "=== ИТОГОВЫЙ ОТЧЕТ ==="
 cat tests/tmp/results/summary.txt 2>/dev/null || echo "Файл с результатами не найден"
 echo ""
 echo "ОБЩИЙ РЕЗУЛЬТАТ: $OVERALL_RESULT"
 echo "Время окончания: $(date)"
 
-# Создаем краткий отчет
 echo "Тесты завершены с результатом: $OVERALL_RESULT" > tests/tmp/final_result.txt
