@@ -1,97 +1,51 @@
 #include <iostream>
+#include <string>
+#include <cstring>
 #include <winsock2.h>
 #include <ws2tcpip.h>
-#include <cstring>
-#include <cstdlib>
-#include <string>
-#include <thread>
-#include <chrono>
-#include "../../include/protocol.h"
 
-int parse_command(const std::string& input, std::string& command, std::string& args);
-int handle_command(const std::string& command, const std::string& args, const std::string& name, SOCKET sock);
+#define MAX_MSG_LEN 1024
+#define MSG_PING "PING"
+#define MSG_PONG "PONG"
 
-#pragma comment(lib, "ws2_32.lib")
-
-void setup_console() {
-    system("chcp 65001");
-    setlocale(LC_ALL, "ru_RU.UTF-8");
-}
-
-int reconnect(SOCKET& sock, struct addrinfo* result) {
-    int attempts = 0;
-    int backoff[] = {1, 2, 4};
-    while (attempts < 3) {
-        std::this_thread::sleep_for(std::chrono::seconds(backoff[attempts]));
-        SOCKET new_sock = socket(AF_INET, SOCK_STREAM, 0);
-        if (new_sock == INVALID_SOCKET) {
-            attempts++;
-            continue;
-        }
-        if (connect(new_sock, result->ai_addr, result->ai_addrlen) == SOCKET_ERROR) {
-            closesocket(new_sock);
-            attempts++;
-            continue;
-        }
-        closesocket(sock);
-        sock = new_sock;
-        return 0;
-    }
-    return -1;
-}
+// Предположим, parse_command и handle_command объявлены где-то еще
+// int parse_command(const std::string& input, std::string& command, std::string& args);
+// int handle_command(const std::string& command, const std::string& args, const std::string& name, SOCKET sock);
+// int reconnect(SOCKET& sock, addrinfo* result);
 
 int main(int argc, char* argv[]) {
-    setup_console();
-
-    if (argc < 3) {
-        std::cout << "Использование: " << argv[0] << " <хост> <порт> [-v] [--name <имя>]\n";
-        return 1;
-    }
-
-    const char* host = argv[1];
-    const char* port_str = argv[2];
-    bool verbose = false;
-    std::string name = "default";
-
-    for (int i = 3; i < argc; ++i) {
-        if (strcmp(argv[i], "-v") == 0) {
-            verbose = true;
-        } else if (strcmp(argv[i], "--name") == 0 && i + 1 < argc) {
-            name = argv[++i];
-        } else {
-            std::cerr << "Неизвестный параметр: " << argv[i] << "\n";
-            return 1;
-        }
-    }
+    const char* host = "127.0.0.1";  // пример
+    const char* port_str = "12345";   // пример
+    const char* name = "user";        // пример
+    int count = 5;                     // количество PING
+    bool verbose = true;
 
     WSADATA wsaData;
-    if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
+    if (WSAStartup(MAKEWORD(2,2), &wsaData) != 0) {
         std::cerr << "Ошибка: WSAStartup не удался.\n";
         return 1;
     }
 
-    SOCKET sock = socket(AF_INET, SOCK_STREAM, 0);
-    if (sock == INVALID_SOCKET) {
-        std::cerr << "Ошибка: socket() не удался.\n";
+    addrinfo hints{}, *result = nullptr;
+    hints.ai_family = AF_INET;
+    hints.ai_socktype = SOCK_STREAM;
+
+    if (getaddrinfo(host, port_str, &hints, &result) != 0) {
+        std::cerr << "Ошибка: getaddrinfo не удался.\n";
         WSACleanup();
         return 1;
     }
 
-    struct addrinfo hints, *result;
-    ZeroMemory(&hints, sizeof(hints));
-    hints.ai_family = AF_INET;
-    hints.ai_socktype = SOCK_STREAM;
-
-    int status = getaddrinfo(host, port_str, &hints, &result);
-    if (status != 0) {
-        std::cerr << "Ошибка: getaddrinfo() не удался.\n";
-        closesocket(sock);
+    SOCKET sock = socket(result->ai_family, result->ai_socktype, result->ai_protocol);
+    if (sock == INVALID_SOCKET) {
+        std::cerr << "Ошибка: socket() не удался.\n";
+        freeaddrinfo(result);
         WSACleanup();
         return 1;
     }
 
     if (connect(sock, result->ai_addr, result->ai_addrlen) == SOCKET_ERROR) {
-        std::cerr << "Ошибка: подключение не удалось.\n";
+        std::cerr << "Ошибка: connect() не удался. Код ошибки: " << WSAGetLastError() << "\n";
         freeaddrinfo(result);
         closesocket(sock);
         WSACleanup();
@@ -100,6 +54,41 @@ int main(int argc, char* argv[]) {
 
     std::cout << "Подключено к " << host << ":" << port_str << "\n";
 
+    // Базовый PING
+    for (int i = 0; i < count; ++i) {
+        if (send(sock, MSG_PING, strlen(MSG_PING), 0) == SOCKET_ERROR) {
+            std::cerr << "Ошибка: send() не удался. Код ошибки: " << WSAGetLastError() << "\n";
+            closesocket(sock);
+            WSACleanup();
+            return 1;
+        }
+
+        if (verbose) std::cout << "отправлено " << MSG_PING << "\n";
+
+        char buffer[MAX_MSG_LEN];
+        int received = recv(sock, buffer, MAX_MSG_LEN - 1, 0);
+        if (received == SOCKET_ERROR) {
+            std::cerr << "Ошибка: recv() не удался. Код ошибки: " << WSAGetLastError() << "\n";
+            closesocket(sock);
+            WSACleanup();
+            return 1;
+        }
+
+        buffer[received] = '\0';
+
+        if (verbose) std::cout << "получено " << buffer << "\n";
+
+        if (strncmp(buffer, MSG_PONG, strlen(MSG_PONG)) != 0) {
+            std::cerr << "Ошибка: ожидался PONG, получен: " << buffer << "\n";
+            closesocket(sock);
+            WSACleanup();
+            return 1;
+        }
+
+        std::cout << "Пинг #" << (i + 1) << " OK\n";
+    }
+
+    // Интерактивный режим
     std::string input;
     while (true) {
         std::cout << "> ";
