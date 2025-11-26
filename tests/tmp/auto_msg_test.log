@@ -1,0 +1,17 @@
+Тест начат: Mon Nov 24 08:48:44 RTZ 2025
+Отправка: PING
+Ответ: PONG 
+---
+Отправка: MSG Hello
+Ответ: MSG Received
+---
+Отправка: MSG Test
+Ответ: MSG Received
+---
+Отправка: ERROR
+Ответ: ERROR Unknown command
+---
+Отправка: PING 123
+Ответ: PONG  123
+---
+Тест завершен: Mon Nov 24 08:48:44 RTZ 2025

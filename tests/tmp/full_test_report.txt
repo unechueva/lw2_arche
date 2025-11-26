@@ -1,0 +1,125 @@
+=== ЗАПУСК ВСЕХ ТЕСТОВ ===
+Время начала: Mon Nov 24 08:48:36 RTZ 2025
+
+--- Запуск env_check.sh ---
+=== Проверка окружения ===
+Проверка g++... WARNING: g++ не найден. (Для компиляции C++ потребуется установить MinGW)
+Проверка cmake... WARNING: cmake не найден. (Для сборки проекта потребуется установить CMake)
+Проверка netcat (nc)... WARNING: netcat не найден. (Некоторые сетевые тесты будут использовать эмуляцию)
+Проверка порта 5555... OK
+Проверка прав на tests/tmp... OK
+=== Основные проверки пройдены, но есть предупреждения ===
+Тестовая инфраструктура готова к работе!
+✅ env_check.sh: PASSED
+
+--- Запуск create_example_data.sh ---
+=== Генерация тестовых данных ===
+Данные созданы в tests/tmp/
+Содержимое tests/tmp/:
+total 64
+drwxr-xr-x 1 mrmrt 197609    0 Nov 24 08:48 .
+drwxr-xr-x 1 mrmrt 197609    0 Nov 24 08:48 ..
+-rw-r--r-- 1 mrmrt 197609  379 Nov 24 08:43 auto_msg_test.log
+-rw-r--r-- 1 mrmrt 197609 1074 Nov 24 08:43 auto_ping_test.log
+drwxr-xr-x 1 mrmrt 197609    0 Nov 24 08:37 auto_test
+-rw-r--r-- 1 mrmrt 197609   11 Nov 24 08:43 disconnect_2.txt
+-rw-r--r-- 1 mrmrt 197609   64 Nov 24 08:43 final_result.txt
+-rw-r--r-- 1 mrmrt 197609 1097 Nov 24 08:48 full_test_report.txt
+drwxr-xr-x 1 mrmrt 197609    0 Nov 21 02:26 input
+drwxr-xr-x 1 mrmrt 197609    0 Nov 21 02:26 logs
+drwxr-xr-x 1 mrmrt 197609    0 Nov 21 02:26 output
+-rw-r--r-- 1 mrmrt 197609   17 Nov 24 08:43 ping_reconnect_1.txt
+-rw-r--r-- 1 mrmrt 197609   17 Nov 24 08:43 ping_reconnect_2.txt
+-rw-r--r-- 1 mrmrt 197609   17 Nov 24 08:43 ping_reconnect_3.txt
+-rw-r--r-- 1 mrmrt 197609   17 Nov 24 08:43 pong_reconnect_1.txt
+-rw-r--r-- 1 mrmrt 197609   17 Nov 24 08:43 pong_reconnect_2.txt
+-rw-r--r-- 1 mrmrt 197609   17 Nov 24 08:43 pong_reconnect_3.txt
+-rw-r--r-- 1 mrmrt 197609   22 Nov 24 08:43 received_ERROR.txt
+-rw-r--r-- 1 mrmrt 197609   13 Nov 24 08:43 received_MSG_Hello.txt
+-rw-r--r-- 1 mrmrt 197609   13 Nov 24 08:43 received_MSG_Test.txt
+-rw-r--r-- 1 mrmrt 197609    6 Nov 24 08:43 received_PING.txt
+-rw-r--r-- 1 mrmrt 197609   10 Nov 24 08:43 received_PING_123.txt
+-rw-r--r-- 1 mrmrt 197609    5 Nov 24 08:43 received_pong.txt
+-rw-r--r-- 1 mrmrt 197609    8 Nov 24 08:43 reconnect_1.txt
+-rw-r--r-- 1 mrmrt 197609    8 Nov 24 08:43 reconnect_2.txt
+-rw-r--r-- 1 mrmrt 197609   10 Nov 24 08:43 reconnect_2_retry.txt
+-rw-r--r-- 1 mrmrt 197609    8 Nov 24 08:43 reconnect_3.txt
+-rw-r--r-- 1 mrmrt 197609  912 Nov 24 08:43 reconnect_test.log
+drwxr-xr-x 1 mrmrt 197609    0 Nov 24 08:43 results
+-rw-r--r-- 1 mrmrt 197609    6 Nov 24 08:43 sent_ERROR.txt
+-rw-r--r-- 1 mrmrt 197609   10 Nov 24 08:43 sent_MSG_Hello.txt
+-rw-r--r-- 1 mrmrt 197609    9 Nov 24 08:43 sent_MSG_Test.txt
+-rw-r--r-- 1 mrmrt 197609    9 Nov 24 08:43 sent_PING_123.txt
+-rw-r--r-- 1 mrmrt 197609    5 Nov 24 08:43 sent_ping.txt
+✅ create_example_data.sh: PASSED
+
+--- Запуск manual_client_server_simple.sh ---
+=== Упрощенный тест Клиент-Сервер ===
+Этот тест проверяет базовую функциональность.
+TEST PASSED: Базовый обмен сообщениями сымитирован успешно.
+Отправлено: PING
+Получено: PONG
+=== Упрощенный тест завершен ===
+✅ manual_client_server_simple.sh: PASSED
+
+--- Запуск auto_ping_test.sh ---
+=== Запуск автоматического PING-теста ===
+=== Результаты автотеста ===
+Успешных циклов: 5
+Неудачных циклов: 0
+ОБЩИЙ РЕЗУЛЬТАТ: PASSED
+Подробный лог: tests/tmp/auto_ping_test.log
+✅ auto_ping_test.sh: PASSED
+
+--- Запуск auto_msg_test.sh ---
+=== Запуск автоматического MSG-теста ===
+=== Автоматический MSG-тест завершен ===
+Лог сохранен: tests/tmp/auto_msg_test.log
+✅ auto_msg_test.sh: PASSED
+
+--- Запуск reconnect_test.sh ---
+=== Тест переподключения ===
+=== Результаты теста переподключения ===
+Сценарии выполнены: 3
+Разрывы соединения: 1
+Повторные подключения: 1
+Лог сохранен: tests/tmp/reconnect_test.log
+✅ reconnect_test.sh: PASSED
+
+--- Анализ логов ---
+=== Анализатор логов ===
+Анализируем: tests/tmp/auto_ping_test.log
+Всего строк в логе: 33
+
+=== ОШИБКИ И ПРЕДУПРЕЖДЕНИЯ ===
+Ошибок не обнаружено
+
+=== СТАТИСТИКА СООБЩЕНИЙ ===
+PING отправлено: 5
+PONG получено: 5
+Успешных циклов: 5
+Неудачных циклов: 0
+
+=== ВРЕМЕННОЙ АНАЛИЗ ===
+Начало теста: Тест начат: Mon Nov 24 08:48:38 RTZ 2025
+Окончание теста: Тест завершен: Mon Nov 24 08:48:43 RTZ 2025
+
+=== ПРОВЕРКА ЦЕЛОСТНОСТИ ===
+✅ Тест завершен успешно
+
+=== ИТОГОВЫЙ ОТЧЕТ ===
+env_check.sh: FAILED
+create_example_data.sh: PASSED
+manual_client_server_simple.sh: PASSED
+auto_ping_test.sh: PASSED
+auto_msg_test.sh: PASSED
+reconnect_test.sh: PASSED
+env_check.sh: PASSED
+create_example_data.sh: PASSED
+manual_client_server_simple.sh: PASSED
+auto_ping_test.sh: PASSED
+auto_msg_test.sh: PASSED
+reconnect_test.sh: PASSED
+
+ОБЩИЙ РЕЗУЛЬТАТ: PASSED
+Время окончания: Mon Nov 24 08:48:47 RTZ 2025
