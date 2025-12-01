@@ -14,3 +14,4 @@ README.md
 Катя и Маша – feat/client-team/KatMash
 - Все изменения отправляются через Pull Request.
 - Слияние делается только в main после проверки.
+
