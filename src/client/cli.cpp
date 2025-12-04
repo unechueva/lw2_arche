@@ -1,8 +1,8 @@
 #include <string>
 #include <cstring>
 #include <iostream>
-#include <winsock2.h>
-#include "../../include/protocol.h"
+#include <sys/socket.h>
+#include "include/protocol.h"
 
 int parse_command(const std::string& input, std::string& command, std::string& args) {
     size_t pos = input.find(' ');
@@ -16,19 +16,24 @@ int parse_command(const std::string& input, std::string& command, std::string& a
     return 0;
 }
 
-int handle_command(const std::string& command, const std::string& args, const std::string& name, SOCKET sock) {
+int handle_command(const std::string& command, const std::string& args, const std::string& name, int sock) {
     if (command == "ping") {
-        if (send(sock, MSG_PING, strlen(MSG_PING), 0) == SOCKET_ERROR) {
+        if (send(sock, MSG_PING, strlen(MSG_PING), 0) == -1) {
+            return -1;
+        }
+    } else if (command == "name") {
+        std::string nam = "NAME " + args + "\n";
+        if (send(sock, nam.c_str(), nam.length(), 0) == -1) {
             return -1;
         }
     } else if (command == "msg") {
         std::string msg = "MSG " + name + " " + args + "\n";
-        if (send(sock, msg.c_str(), msg.length(), 0) == SOCKET_ERROR) {
+        if (send(sock, msg.c_str(), msg.length(), 0) == -1) {
             return -1;
         }
     } else if (command == "hist") {
         std::string hist = "HIST " + args + "\n";
-        if (send(sock, hist.c_str(), hist.length(), 0) == SOCKET_ERROR) {
+        if (send(sock, hist.c_str(), hist.length(), 0) == -1) {
             return -1;
         }
     } else if (command == "quit") {
